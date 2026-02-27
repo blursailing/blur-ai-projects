@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data files (keep out of repo — too large or private)
+*.grib
+*.grib2
+*.grb
+*.csv
+*.xlsx
+!dashboard/requirements.txt
+
+# Secrets
+.env
+*.key
