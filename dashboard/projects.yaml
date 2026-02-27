@@ -1,0 +1,323 @@
+# BLUR AI Projects — Master Project List
+# This file is the single source of truth for all project data.
+# The Streamlit dashboard reads this file directly.
+#
+# How to update:
+#   - Change status, scores, or notes as projects evolve
+#   - Add new projects at the bottom
+#   - Update last_updated when making changes
+#   - Commit with message: [projects] description of change
+#
+# Status values: idea → planned → in-progress → testing → complete → on-hold
+# Category values: best-practice, radical
+
+- id: 1
+  title: Weather Model Scoring Engine
+  category: best-practice
+  edge: 9.5
+  complexity: 5
+  status: testing
+  description: >
+    Score GRIB forecasts against SMHI/ViVa observations and Expedition logs.
+    Rank models, detect bias, output calibration recommendations.
+    Model Accuracy approach, automated and continuous.
+  tech: Python · Open-Meteo API · SMHI API · Expedition logs
+  exp_features: Expedition log parsing · GRIB weather display
+  insight: >
+    Campbell Field: "I run Model Accuracy after every distance race
+    to get a feel for which models I should favour."
+  phase: Built — ready for Claude Code testing with live API
+  depends_on: []
+  last_updated: 2026-02-27
+  notes: Built in session 2. Needs testing against real Open-Meteo and SMHI data.
+
+- id: 2
+  title: Live GRIB Nudging for Routing
+  category: best-practice
+  edge: 9.0
+  complexity: 6
+  status: planned
+  description: >
+    Apply scoring engine's bias corrections to GRIBs before routing.
+    Auto-adjust TWS scale, TWD rotation, and time offset in Expedition's
+    routing via the Python DLL.
+  tech: Expedition-Python DLL · Python · GRIB manipulation
+  exp_features: Optimal routing settings (Wind Time Shift, polar scaling) · SetExpVar() · Ensemble routing
+  insight: >
+    Justin Shaffer: "I was able to apply those past forecast trends as
+    optimal routing calibrations in Expedition. The result was a perfectly
+    calibrated optimal route on the best GRIB."
+  phase: Next priority — requires scoring engine output
+  depends_on: [1]
+  last_updated: 2026-02-27
+  notes: ""
+
+- id: 3
+  title: Ensemble Route Divergence Alerting
+  category: best-practice
+  edge: 8.5
+  complexity: 4
+  status: planned
+  description: >
+    Run Expedition's ensemble routing across all loaded models, then analyze
+    where routes converge (safe) vs diverge (critical). Flag decision points
+    with time windows.
+  tech: Expedition-Python DLL · Expedition ensemble routing
+  exp_features: Ensemble routing · Reverse isochrones · Sensitivity shading · Multiple optimal routes
+  insight: >
+    Will Oxley uses ensemble spread as primary decision tool.
+    When routes cluster = commit. When routes diverge = hedge toward the middle.
+  phase: D-3 to race day tool
+  depends_on: []
+  last_updated: 2026-02-27
+  notes: ""
+
+- id: 4
+  title: Automated Polar Validation & Refinement
+  category: best-practice
+  edge: 8.0
+  complexity: 6
+  status: planned
+  description: >
+    Parse Expedition race logs, compare actual BSP vs polar target across all
+    TWA/TWS combinations. Identify consistent over/under-performance.
+    Generate polar patch files automatically.
+  tech: Python · Expedition logs · Polar parser · Stripchart data
+  exp_features: Polar edit · Sail test analysis · Stripchart wand tests · Nav vs Performance polar
+  insight: >
+    Nick White (Expedition creator): "Your polars are an extremely valuable input.
+    Garbage in = garbage out." Every top nav team does polar refinement after every race.
+    Most J/99 teams don't.
+  phase: Off-season project, updates before each race
+  depends_on: []
+  last_updated: 2026-02-27
+  notes: Have 3 Expedition log files + v8 polar to start with.
+
+- id: 5
+  title: Strategic Sail Change Optimizer
+  category: best-practice
+  edge: 7.5
+  complexity: 5
+  status: planned
+  description: >
+    Combine routing output (predicted TWA/TWS along the course) with sail
+    crossover chart to pre-plan every sail change. Calculate exact positions,
+    account for doublehanded change time penalty.
+  tech: Python · Expedition routing CSV export · Sailchart data
+  exp_features: Sail chart · Optimal route results table · Sail polars
+  insight: >
+    On a J/99 doublehanded, a bad sail change costs 3-5 minutes. Knowing
+    exactly when to change and pre-staging the right sail is worth more than
+    most tactical decisions.
+  phase: Pre-race (D-1) and during race
+  depends_on: []
+  last_updated: 2026-02-27
+  notes: Have sailchart + crossover data in Excel from 2026 season.
+
+- id: 6
+  title: Pre-Race Historical Weather Analysis
+  category: best-practice
+  edge: 7.5
+  complexity: 3
+  status: planned
+  description: >
+    For a specific race course and date range, pull historical SMHI data
+    to understand typical wind patterns, sea breeze timing, diurnal shifts.
+    Build a "course weather playbook."
+  tech: Python · SMHI historical API · Data visualization
+  exp_features: Expedition weather display · Meteograms
+  insight: >
+    Stan Honey pre-analyzes years of historical data for every major race.
+    The blur.se blog already shows SMHI historical work — this automates it.
+  phase: Weeks before race, one-time per course
+  depends_on: []
+  last_updated: 2026-02-27
+  notes: ""
+
+- id: 7
+  title: Instrument Calibration Assistant
+  category: best-practice
+  edge: 7.0
+  complexity: 5
+  status: planned
+  description: >
+    Analyze Expedition logs to detect instrument calibration drift: compare
+    TWD port vs starboard (upwash), BSP vs SOG (speed cal), current set
+    changes tack-to-tack (heading cal).
+  tech: Python · Expedition-Python DLL · Expedition logs
+  exp_features: Calibration tables (TWA, TWS, BSP, Heading, Leeway) · Stripchart · B&G cal exchange
+  insight: >
+    Expedition docs: "If you have inaccurate data, then any calculations
+    and decisions will reflect those errors." Bad cal = bad TWD = bad routing.
+  phase: After every sail, continuous improvement
+  depends_on: []
+  last_updated: 2026-02-27
+  notes: ""
+
+- id: 8
+  title: Race Debrief Report Generator
+  category: best-practice
+  edge: 6.5
+  complexity: 4
+  status: planned
+  description: >
+    Auto-generate post-race analysis from Expedition logs: actual vs polar
+    per leg, tactical decisions, model accuracy during race, and competitor
+    analysis from YB/AIS data.
+  tech: Python · Expedition logs · Claude AI for narrative
+  exp_features: Log replay · Track display · AIS tracking · YB Tracking · Stripchart
+  insight: >
+    Every Volvo Ocean Race team does structured debriefs. Most club racers
+    learn almost nothing between races because the data stays in a log file
+    nobody opens.
+  phase: Post-race (within 24h)
+  depends_on: []
+  last_updated: 2026-02-27
+  notes: ""
+
+- id: 9
+  title: Routing Sensitivity Time Budget
+  category: best-practice
+  edge: 8.0
+  complexity: 4
+  status: planned
+  description: >
+    Use Expedition's reverse isochrones and sensitivity shading to quantify
+    WHERE time is won/lost on the course. Convert to a "time budget" per
+    decision point.
+  tech: Expedition-Python DLL · Expedition routing
+  exp_features: Reverse isochrones · Sensitivity shading · Optimal route Polar% runs (90-110%)
+  insight: >
+    Expedition docs: "If forward and reverse isochrones are close together
+    over a small distance, the optimal route is much more critical."
+  phase: D-1 planning and during race
+  depends_on: []
+  last_updated: 2026-02-27
+  notes: ""
+
+- id: 10
+  title: Fleet Position & Competitor Tracker
+  category: best-practice
+  edge: 6.0
+  complexity: 5
+  status: planned
+  description: >
+    Ingest YB Tracking and AIS data for competitors. Calculate who's
+    ahead/behind on corrected time (SRS handicap). Detect when competitors
+    are on a different strategic option.
+  tech: Python · YB Tracking API · AIS data · Expedition-Python DLL
+  exp_features: YB Tracking · AIS target tracking · Fleet routing · "Ahead of" channel
+  insight: >
+    In Gotland Runt with 200 boats, knowing where your direct SRS competitors
+    are is crucial for mid-race tactical adjustments.
+  phase: Race day, continuous
+  depends_on: []
+  last_updated: 2026-02-27
+  notes: ""
+
+- id: 11
+  title: AI Weather Regime Classifier
+  category: radical
+  edge: 9.0
+  complexity: 8
+  status: idea
+  description: >
+    Train a classifier on historical Baltic weather to identify the current
+    regime (frontal, gradient, thermal, post-frontal NW) and auto-select
+    model weighting. "In frontal situations, trust ECMWF. In thermal
+    patterns, trust ICON-EU."
+  tech: Python · ML (scikit-learn/XGBoost) · SMHI historical · Open-Meteo archive
+  exp_features: Ensemble routing weights based on regime
+  insight: >
+    No sailing team does this yet. Meteorologists know models have
+    regime-dependent skill, but the connection to routing is manual and
+    intuitive. This codifies what the best weather routers do by instinct.
+  phase: Off-season R&D, long-term advantage
+  depends_on: [1]
+  last_updated: 2026-02-27
+  notes: Requires large historical dataset. Could start with simple rule-based classifier before ML.
+
+- id: 12
+  title: Dynamic Polar Adjustment (Fatigue + Sea State)
+  category: radical
+  edge: 8.5
+  complexity: 7
+  status: idea
+  description: >
+    Your polar assumes peak performance. But doublehanded at 3 AM in 1.5m
+    swell, you're not hitting 100%. Build a dynamic polar scaling model:
+    time of day, sea state, hours into race, and recent BSP-vs-target ratio.
+  tech: Python · Expedition-Python DLL · GRIB wave data · Expedition logs
+  exp_features: Nav polar scaling · Polar% runs · Wave corrections · SetExpVar() for live polar %
+  insight: >
+    Expedition already has Polar% routing (90-110%). The radical part is
+    making it DYNAMIC. No amateur team does this; some Volvo Ocean Race
+    teams estimated crew fatigue manually.
+  phase: Race day, automatic background process
+  depends_on: [4]
+  last_updated: 2026-02-27
+  notes: ""
+
+- id: 13
+  title: Probabilistic Routing with Confidence Intervals
+  category: radical
+  edge: 9.0
+  complexity: 9
+  status: idea
+  description: >
+    Instead of routing on one model, generate a probability distribution of
+    arrival times via Monte Carlo. Output: "78% chance of arriving 14:00-16:00,
+    but 15% chance of >20:00 if the front stalls."
+  tech: Python · Monte Carlo simulation · Expedition routing via DLL · Scoring engine stats
+  exp_features: Ensemble routing · Multiple optimal routes · Sensitivity shading
+  insight: >
+    This is what the ECMWF ensemble (51 members) is designed for, but
+    nobody applies it to individual boat routing. You'd be the first J/99
+    team doing probabilistic strategy.
+  phase: D-2 to race, computationally intensive
+  depends_on: [1, 2]
+  last_updated: 2026-02-27
+  notes: ""
+
+- id: 14
+  title: Real-Time Land Effect Correction Model
+  category: radical
+  edge: 8.0
+  complexity: 8
+  status: idea
+  description: >
+    The Stockholm archipelago and Gotland's coastline create massive land
+    effects no global model captures. Build a correction layer using
+    historical SMHI station data for wind shadow, acceleration, thermal effects.
+  tech: Python · SMHI multi-station analysis · GRIB modification · Spatial interpolation
+  exp_features: GRIB weather display · Scale currents (analogous for wind patches)
+  insight: >
+    The 2019 blur.se blog noted ICON-EU and Météo-France differ by 9-16° in
+    TWD near land — exactly this problem. The archipelago exit and Gotland's
+    southern tip are notorious.
+  phase: Course-specific R&D, applied during race
+  depends_on: [6]
+  last_updated: 2026-02-27
+  notes: ""
+
+- id: 15
+  title: Autonomous Expedition Co-Pilot (Pixel)
+  category: radical
+  edge: 9.5
+  complexity: 10
+  status: in-progress
+  description: >
+    A Python process connected to Expedition via DLL that acts as AI crew:
+    monitors all instrument channels, detects wind shifts, triggers re-routing,
+    manages sail change timing, watches competitors. The "always-on navigator"
+    for doublehanded racing.
+  tech: Python · Expedition-Python DLL (200+ channels) · Claude API · WebSocket to phone
+  exp_features: Full DLL access · Alarms · SetSysBool for custom flags · What-if functionality
+  insight: >
+    This is the endgame — where all other projects converge. Every individual
+    project becomes a module in this system. No doublehanded team has
+    anything close.
+  phase: Long-term vision, built incrementally
+  depends_on: [1, 2, 3, 4, 5, 7, 9, 10]
+  last_updated: 2026-02-27
+  notes: Pixel spec defined. This is the container — other projects are the modules.
