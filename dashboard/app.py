@@ -1,13 +1,15 @@
 """
 BLUR AI Projects — Edge vs Complexity
-Interactive Streamlit dashboard for navigating the 15 AI crew projects
-for J/99 BLUR offshore racing.
+Interactive Streamlit dashboard for J/99 BLUR offshore racing.
 
+Data lives in projects.yaml — edit that file, not this one.
 Run: streamlit run app.py
 """
 
 import streamlit as st
 import plotly.graph_objects as go
+import yaml
+from pathlib import Path
 
 # ─── Page config ───
 st.set_page_config(
@@ -16,6 +18,25 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# ─── Load data ───
+@st.cache_data
+def load_projects():
+    yaml_path = Path(__file__).parent / "projects.yaml"
+    with open(yaml_path, "r") as f:
+        return yaml.safe_load(f)
+
+PROJECTS = load_projects()
+
+# ─── Status config ───
+STATUS_CONFIG = {
+    "idea":        {"icon": "💭", "color": "#4a5a6a", "label": "Idea"},
+    "planned":     {"icon": "📋", "color": "#7c4dff", "label": "Planned"},
+    "in-progress": {"icon": "🔨", "color": "#00bcd4", "label": "In Progress"},
+    "testing":     {"icon": "🧪", "color": "#ffd740", "label": "Testing"},
+    "complete":    {"icon": "✅", "color": "#00e5a0", "label": "Complete"},
+    "on-hold":     {"icon": "⏸️",  "color": "#ff5252", "label": "On Hold"},
+}
 
 # ─── Custom CSS ───
 st.markdown("""
@@ -29,36 +50,6 @@ st.markdown("""
     p, li, span, div { font-family: 'DM Sans', sans-serif; }
     code { font-family: 'DM Mono', monospace !important; }
 
-    /* Card styling */
-    .project-card {
-        background: #0a0e1a;
-        border: 1px solid #1a1a2e;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 12px;
-        transition: border-color 0.2s;
-    }
-    .project-card:hover { border-color: #2a2a4e; }
-    .project-card.best-practice { border-left: 3px solid #00e5a0; }
-    .project-card.radical { border-left: 3px solid #ff6b35; }
-
-    .tag-radical {
-        background: rgba(255,107,53,0.1);
-        color: #ff6b35;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        font-family: 'DM Mono', monospace;
-    }
-    .tag-phase {
-        color: #4a6a8a;
-        font-size: 12px;
-        font-family: 'DM Mono', monospace;
-    }
-
     .metric-label {
         color: #6b7280;
         font-size: 11px;
@@ -67,6 +58,34 @@ st.markdown("""
     .metric-value {
         font-size: 22px;
         font-weight: 800;
+        font-family: 'DM Mono', monospace;
+    }
+
+    .tag {
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-family: 'DM Mono', monospace;
+        display: inline-block;
+        margin-right: 6px;
+    }
+    .tag-radical {
+        background: rgba(255,107,53,0.1);
+        color: #ff6b35;
+    }
+    .tag-status {
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-family: 'DM Mono', monospace;
+        display: inline-block;
+    }
+    .tag-phase {
+        color: #4a6a8a;
+        font-size: 12px;
         font-family: 'DM Mono', monospace;
     }
 
@@ -82,6 +101,27 @@ st.markdown("""
         line-height: 1.6;
     }
 
+    .dep-tag {
+        background: rgba(124,77,255,0.1);
+        color: #7c4dff;
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-size: 10px;
+        font-family: 'DM Mono', monospace;
+        margin-right: 4px;
+    }
+
+    .notes-box {
+        background: #080b14;
+        border: 1px solid #1a1a2e;
+        border-radius: 6px;
+        padding: 10px 14px;
+        margin-top: 8px;
+        color: #6b7280;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
     .build-sequence {
         background: #0a0e1a;
         border: 1px solid #1a1a2e;
@@ -91,12 +131,10 @@ st.markdown("""
         font-size: 14px;
     }
 
-    /* Sidebar */
     section[data-testid="stSidebar"] {
         background-color: #080b14;
     }
 
-    /* Hide streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
@@ -110,191 +148,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ─── Project data ───
-PROJECTS = [
-    {
-        "id": 1,
-        "title": "Weather Model Scoring Engine",
-        "category": "best-practice",
-        "edge": 9.5,
-        "complexity": 5,
-        "description": "Score GRIB forecasts against SMHI/ViVa observations and Expedition logs. Rank models, detect bias, output calibration recommendations. Model Accuracy approach, automated and continuous.",
-        "tech": "Python · Open-Meteo API · SMHI API · Expedition logs",
-        "exp_features": "Expedition log parsing · GRIB weather display",
-        "insight": 'Campbell Field: "I run Model Accuracy after every distance race to get a feel for which models I should favour."',
-        "phase": "✅ Built — ready for Claude Code testing",
-    },
-    {
-        "id": 2,
-        "title": "Live GRIB Nudging for Routing",
-        "category": "best-practice",
-        "edge": 9.0,
-        "complexity": 6,
-        "description": "Apply scoring engine's bias corrections to GRIBs before routing. Auto-adjust TWS scale, TWD rotation, and time offset in Expedition's routing via the Python DLL.",
-        "tech": "Expedition-Python DLL · Python · GRIB manipulation",
-        "exp_features": "Optimal routing settings (Wind Time Shift, polar scaling) · SetExpVar() · Ensemble routing",
-        "insight": 'Justin Shaffer: "I was able to apply those past forecast trends as optimal routing calibrations in Expedition. The result was a perfectly calibrated optimal route on the best GRIB."',
-        "phase": "Next — requires scoring engine output",
-    },
-    {
-        "id": 3,
-        "title": "Ensemble Route Divergence Alerting",
-        "category": "best-practice",
-        "edge": 8.5,
-        "complexity": 4,
-        "description": "Run Expedition's ensemble routing across all loaded models, then analyze where routes converge (safe) vs diverge (critical). Flag decision points with time windows.",
-        "tech": "Expedition-Python DLL · Expedition ensemble routing",
-        "exp_features": "Ensemble routing · Reverse isochrones · Sensitivity shading · Multiple optimal routes",
-        "insight": "Will Oxley uses ensemble spread as primary decision tool. When routes cluster = commit. When routes diverge = hedge toward the middle.",
-        "phase": "D-3 to race day tool",
-    },
-    {
-        "id": 4,
-        "title": "Automated Polar Validation & Refinement",
-        "category": "best-practice",
-        "edge": 8.0,
-        "complexity": 6,
-        "description": "Parse Expedition race logs, compare actual BSP vs polar target across all TWA/TWS combinations. Identify consistent over/under-performance. Generate polar patch files automatically.",
-        "tech": "Python · Expedition logs · Polar parser · Stripchart data",
-        "exp_features": "Polar edit · Sail test analysis · Stripchart wand tests · Nav vs Performance polar",
-        "insight": 'Nick White (Expedition creator): "Your polars are an extremely valuable input. Garbage in = garbage out." Every top nav team does polar refinement after every race. Most J/99 teams don\'t.',
-        "phase": "Off-season project, updates before each race",
-    },
-    {
-        "id": 5,
-        "title": "Strategic Sail Change Optimizer",
-        "category": "best-practice",
-        "edge": 7.5,
-        "complexity": 5,
-        "description": "Combine routing output (predicted TWA/TWS along the course) with your sail crossover chart to pre-plan every sail change. Calculate exact positions, account for doublehanded change time penalty.",
-        "tech": "Python · Expedition routing CSV export · Sailchart data",
-        "exp_features": "Sail chart · Optimal route results table · Sail polars",
-        "insight": "On a J/99 doublehanded, a bad sail change costs 3-5 minutes. Knowing exactly when to change and pre-staging the right sail is worth more than most tactical decisions.",
-        "phase": "Pre-race (D-1) and during race",
-    },
-    {
-        "id": 6,
-        "title": "Pre-Race Historical Weather Analysis",
-        "category": "best-practice",
-        "edge": 7.5,
-        "complexity": 3,
-        "description": 'For a specific race course and date range, pull historical SMHI data to understand typical wind patterns, sea breeze timing, diurnal shifts. Build a "course weather playbook."',
-        "tech": "Python · SMHI historical API · Data visualization",
-        "exp_features": "Expedition weather display · Meteograms",
-        "insight": "Stan Honey pre-analyzes years of historical data for every major race. The blur.se blog already shows SMHI historical work — this automates it.",
-        "phase": "Weeks before race, one-time per course",
-    },
-    {
-        "id": 7,
-        "title": "Instrument Calibration Assistant",
-        "category": "best-practice",
-        "edge": 7.0,
-        "complexity": 5,
-        "description": "Analyze Expedition logs to detect instrument calibration drift: compare TWD port vs starboard (upwash), BSP vs SOG (speed cal), current set changes tack-to-tack (heading cal).",
-        "tech": "Python · Expedition-Python DLL · Expedition logs",
-        "exp_features": "Calibration tables (TWA, TWS, BSP, Heading, Leeway) · Stripchart · B&G cal exchange",
-        "insight": 'Expedition docs: "If you have inaccurate data, then any calculations and decisions will reflect those errors." Bad cal = bad TWD = bad routing.',
-        "phase": "After every sail, continuous improvement",
-    },
-    {
-        "id": 8,
-        "title": "Race Debrief Report Generator",
-        "category": "best-practice",
-        "edge": 6.5,
-        "complexity": 4,
-        "description": "Auto-generate post-race analysis from Expedition logs: actual vs polar per leg, tactical decisions, model accuracy during race, and competitor analysis from YB/AIS data.",
-        "tech": "Python · Expedition logs · Claude AI for narrative",
-        "exp_features": "Log replay · Track display · AIS tracking · YB Tracking · Stripchart",
-        "insight": "Every Volvo Ocean Race team does structured debriefs. Most club racers learn almost nothing between races because the data stays in a log file nobody opens.",
-        "phase": "Post-race (within 24h)",
-    },
-    {
-        "id": 9,
-        "title": "Routing Sensitivity Time Budget",
-        "category": "best-practice",
-        "edge": 8.0,
-        "complexity": 4,
-        "description": "Use Expedition's reverse isochrones and sensitivity shading to quantify WHERE time is won/lost on the course. Convert to a \"time budget\" per decision point.",
-        "tech": "Expedition-Python DLL · Expedition routing",
-        "exp_features": "Reverse isochrones · Sensitivity shading · Optimal route Polar% runs (90-110%)",
-        "insight": 'Expedition docs: "If forward and reverse isochrones are close together over a small distance, the optimal route is much more critical."',
-        "phase": "D-1 planning and during race",
-    },
-    {
-        "id": 10,
-        "title": "Fleet Position & Competitor Tracker",
-        "category": "best-practice",
-        "edge": 6.0,
-        "complexity": 5,
-        "description": "Ingest YB Tracking and AIS data for competitors. Calculate who's ahead/behind on corrected time (SRS handicap). Detect when competitors are on a different strategic option.",
-        "tech": "Python · YB Tracking API · AIS data · Expedition-Python DLL",
-        "exp_features": 'YB Tracking · AIS target tracking · Fleet routing · "Ahead of" channel',
-        "insight": "In Gotland Runt with 200 boats, knowing where your direct SRS competitors are is crucial for mid-race tactical adjustments.",
-        "phase": "Race day, continuous",
-    },
-    {
-        "id": 11,
-        "title": "AI Weather Regime Classifier",
-        "category": "radical",
-        "edge": 9.0,
-        "complexity": 8,
-        "description": 'Train a classifier on historical Baltic weather to identify the current regime (frontal, gradient, thermal, post-frontal NW) and auto-select model weighting. "In frontal situations, trust ECMWF. In thermal patterns, trust ICON-EU."',
-        "tech": "Python · ML (scikit-learn/XGBoost) · SMHI historical · Open-Meteo archive",
-        "exp_features": "Ensemble routing weights based on regime",
-        "insight": "No sailing team does this yet. Meteorologists know models have regime-dependent skill, but the connection to routing is manual and intuitive. This codifies what the best weather routers do by instinct.",
-        "phase": "Off-season R&D, long-term advantage",
-    },
-    {
-        "id": 12,
-        "title": "Dynamic Polar Adjustment (Fatigue + Sea State)",
-        "category": "radical",
-        "edge": 8.5,
-        "complexity": 7,
-        "description": "Your polar assumes peak performance. But doublehanded at 3 AM in 1.5m swell, you're not hitting 100%. Build a dynamic polar scaling model: time of day, sea state, hours into race, and recent BSP-vs-target ratio.",
-        "tech": "Python · Expedition-Python DLL · GRIB wave data · Expedition logs",
-        "exp_features": "Nav polar scaling · Polar% runs · Wave corrections · SetExpVar() for live polar %",
-        "insight": "Expedition already has Polar% routing (90-110%). The radical part is making it DYNAMIC. No amateur team does this; some Volvo Ocean Race teams estimated crew fatigue manually.",
-        "phase": "Race day, automatic background process",
-    },
-    {
-        "id": 13,
-        "title": "Probabilistic Routing with Confidence Intervals",
-        "category": "radical",
-        "edge": 9.0,
-        "complexity": 9,
-        "description": 'Instead of routing on one model, generate a probability distribution of arrival times via Monte Carlo. Output: "78% chance of arriving 14:00-16:00, but 15% chance of >20:00 if the front stalls."',
-        "tech": "Python · Monte Carlo simulation · Expedition routing via DLL · Scoring engine stats",
-        "exp_features": "Ensemble routing · Multiple optimal routes · Sensitivity shading",
-        "insight": "This is what the ECMWF ensemble (51 members) is designed for, but nobody applies it to individual boat routing. You'd be the first J/99 team doing probabilistic strategy.",
-        "phase": "D-2 to race, computationally intensive",
-    },
-    {
-        "id": 14,
-        "title": "Real-Time Land Effect Correction Model",
-        "category": "radical",
-        "edge": 8.0,
-        "complexity": 8,
-        "description": "The Stockholm archipelago and Gotland's coastline create massive land effects no global model captures. Build a correction layer using historical SMHI station data for wind shadow, acceleration, thermal effects.",
-        "tech": "Python · SMHI multi-station analysis · GRIB modification · Spatial interpolation",
-        "exp_features": "GRIB weather display · Scale currents (analogous for wind patches)",
-        "insight": "The 2019 blur.se blog noted ICON-EU and Météo-France differ by 9-16° in TWD near land — exactly this problem. The archipelago exit and Gotland's southern tip are notorious.",
-        "phase": "Course-specific R&D, applied during race",
-    },
-    {
-        "id": 15,
-        "title": "Autonomous Expedition Co-Pilot (Pixel)",
-        "category": "radical",
-        "edge": 9.5,
-        "complexity": 10,
-        "description": 'A Python process connected to Expedition via DLL that acts as AI crew: monitors all instrument channels, detects wind shifts, triggers re-routing, manages sail change timing, watches competitors. The "always-on navigator" for doublehanded racing.',
-        "tech": "Python · Expedition-Python DLL (200+ channels) · Claude API · WebSocket to phone",
-        "exp_features": "Full DLL access · Alarms · SetSysBool for custom flags · What-if functionality",
-        "insight": "This is the endgame — where all other projects converge. Every individual project becomes a module in this system. No doublehanded team has anything close.",
-        "phase": "Long-term vision, built incrementally",
-    },
-]
-
-
 # ─── Sidebar ───
 with st.sidebar:
     st.markdown("### ⛵ BLUR × Expedition × AI")
@@ -302,16 +155,26 @@ with st.sidebar:
     st.markdown("---")
 
     category_filter = st.radio(
-        "Filter by category",
+        "Category",
         ["All (15)", "Best Practice (10)", "Radical (5)"],
         index=0,
     )
 
     st.markdown("---")
 
+    all_statuses = sorted(set(p.get("status", "planned") for p in PROJECTS))
+    status_filter = st.multiselect(
+        "Status",
+        options=all_statuses,
+        default=all_statuses,
+        format_func=lambda s: f"{STATUS_CONFIG.get(s, {}).get('icon', '•')} {STATUS_CONFIG.get(s, {}).get('label', s)}",
+    )
+
+    st.markdown("---")
+
     sort_option = st.radio(
         "Sort by",
-        ["Ratio (edge ÷ complexity)", "Competitive Edge", "Easiest first"],
+        ["Ratio (bang for buck)", "Competitive Edge", "Easiest first", "Status"],
         index=0,
     )
 
@@ -321,16 +184,23 @@ with st.sidebar:
     max_complexity = st.slider("Maximum complexity", 1, 10, 10)
 
     st.markdown("---")
+
     st.markdown(
         """
-        <div style="font-size: 11px; color: #4a5a6a; line-height: 1.6;">
-        <strong style="color: #00e5a0;">Edge</strong> = competitive advantage during a race<br>
+        <div style="font-size: 11px; color: #4a5a6a; line-height: 1.8;">
+        <strong style="color: #00e5a0;">Edge</strong> = competitive advantage<br>
         <strong style="color: #ff9800;">Complexity</strong> = effort to build<br>
-        <strong>Ratio</strong> = edge ÷ complexity (bang for buck)
+        <strong>Ratio</strong> = edge ÷ complexity<br><br>
+        <strong>Status:</strong><br>
+        💭 Idea · 📋 Planned · 🔨 In Progress<br>
+        🧪 Testing · ✅ Complete · ⏸️ On Hold
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+    st.markdown("---")
+    st.caption("Data: `projects.yaml`")
 
 
 # ─── Filter & sort ───
@@ -341,27 +211,40 @@ if "Best Practice" in category_filter:
 elif "Radical" in category_filter:
     filtered = [p for p in filtered if p["category"] == "radical"]
 
+filtered = [p for p in filtered if p.get("status", "planned") in status_filter]
 filtered = [p for p in filtered if p["edge"] >= min_edge and p["complexity"] <= max_complexity]
+
+STATUS_ORDER = {"complete": 0, "testing": 1, "in-progress": 2, "planned": 3, "idea": 4, "on-hold": 5}
 
 if "Ratio" in sort_option:
     filtered.sort(key=lambda p: p["edge"] / max(p["complexity"], 0.1), reverse=True)
 elif "Edge" in sort_option:
     filtered.sort(key=lambda p: p["edge"], reverse=True)
-else:
+elif "Easiest" in sort_option:
     filtered.sort(key=lambda p: p["complexity"])
+elif "Status" in sort_option:
+    filtered.sort(key=lambda p: STATUS_ORDER.get(p.get("status", "planned"), 99))
 
 
 # ─── Header ───
 st.markdown("# BLUR AI Projects — Edge vs Complexity")
+
+total = len(PROJECTS)
+complete = sum(1 for p in PROJECTS if p.get("status") == "complete")
+testing = sum(1 for p in PROJECTS if p.get("status") == "testing")
+in_progress = sum(1 for p in PROJECTS if p.get("status") == "in-progress")
+
 st.markdown(
-    "15 projects scored on **:green[competitive edge]** (how much faster you'll be) "
-    "vs **:orange[complexity]** (how hard to build). Built for J/99 BLUR doublehanded offshore racing "
-    "with Expedition navigation software."
+    f"**{total}** projects · "
+    f"**{complete}** complete · "
+    f"**{testing}** testing · "
+    f"**{in_progress}** in progress · "
+    f"**{total - complete - testing - in_progress}** planned/idea"
 )
 
 
 # ─── Scatter plot ───
-st.markdown("### Scatter: Edge vs Complexity")
+st.markdown("### Edge vs Complexity")
 
 fig = go.Figure()
 
@@ -374,6 +257,8 @@ for cat, color, symbol in [
         continue
 
     ratios = [p["edge"] / max(p["complexity"], 0.1) for p in cat_projects]
+    statuses = [p.get("status", "planned") for p in cat_projects]
+    opacities = [1.0 if s in ("complete", "testing", "in-progress") else 0.6 for s in statuses]
 
     fig.add_trace(go.Scatter(
         x=[p["complexity"] for p in cat_projects],
@@ -382,7 +267,7 @@ for cat, color, symbol in [
         marker=dict(
             size=[r * 12 for r in ratios],
             color=color,
-            opacity=0.85,
+            opacity=opacities,
             line=dict(width=1, color="#1a1a2e"),
             symbol=symbol,
         ),
@@ -390,20 +275,24 @@ for cat, color, symbol in [
         textposition="top center",
         textfont=dict(size=10, color="#8a8aa0", family="DM Mono, monospace"),
         customdata=[
-            [p["title"], p["edge"], p["complexity"], round(p["edge"] / max(p["complexity"], 0.1), 2)]
+            [
+                p["title"],
+                p["edge"],
+                p["complexity"],
+                round(p["edge"] / max(p["complexity"], 0.1), 2),
+                STATUS_CONFIG.get(p.get("status", "planned"), {}).get("label", "Planned"),
+            ]
             for p in cat_projects
         ],
         hovertemplate=(
             "<b>%{customdata[0]}</b><br>"
-            "Edge: %{customdata[1]}<br>"
-            "Complexity: %{customdata[2]}<br>"
-            "Ratio: %{customdata[3]}×"
+            "Edge: %{customdata[1]} · Complexity: %{customdata[2]}<br>"
+            "Ratio: %{customdata[3]}× · Status: %{customdata[4]}"
             "<extra></extra>"
         ),
         name="Best Practice" if cat == "best-practice" else "Radical",
     ))
 
-# Add "ideal" zone shading — high edge, low complexity
 fig.add_shape(
     type="rect", x0=0, y0=7.5, x1=5.5, y1=10,
     fillcolor="rgba(0,229,160,0.04)", line=dict(width=0),
@@ -414,7 +303,6 @@ fig.add_annotation(
     font=dict(size=10, color="rgba(0,229,160,0.25)", family="DM Mono"),
 )
 
-# Ratio isolines
 for ratio in [1.0, 1.5, 2.0]:
     x_vals = [i * 0.5 for i in range(2, 21)]
     y_vals = [x * ratio for x in x_vals]
@@ -465,44 +353,22 @@ st.plotly_chart(fig, use_container_width=True)
 # ─── Project cards ───
 st.markdown(f"### Projects ({len(filtered)} shown)")
 
+title_by_id = {p["id"]: p["title"] for p in PROJECTS}
+
 for rank, p in enumerate(filtered, 1):
     ratio = p["edge"] / max(p["complexity"], 0.1)
     is_radical = p["category"] == "radical"
+    status = p.get("status", "planned")
+    status_cfg = STATUS_CONFIG.get(status, STATUS_CONFIG["planned"])
 
-    # Ratio color
-    if ratio >= 2.0:
-        ratio_color = "#00e5a0"
-    elif ratio >= 1.5:
-        ratio_color = "#00bcd4"
-    elif ratio >= 1.0:
-        ratio_color = "#ffd740"
-    else:
-        ratio_color = "#ff9800"
+    ratio_color = "#00e5a0" if ratio >= 2.0 else "#00bcd4" if ratio >= 1.5 else "#ffd740" if ratio >= 1.0 else "#ff9800"
+    edge_color = "#00e5a0" if p["edge"] >= 9 else "#00bcd4" if p["edge"] >= 8 else "#7c4dff" if p["edge"] >= 7 else "#ff9800"
+    cx_color = "#ff5252" if p["complexity"] >= 8 else "#ff9800" if p["complexity"] >= 6 else "#ffd740" if p["complexity"] >= 4 else "#00e5a0"
 
-    # Edge color
-    if p["edge"] >= 9:
-        edge_color = "#00e5a0"
-    elif p["edge"] >= 8:
-        edge_color = "#00bcd4"
-    elif p["edge"] >= 7:
-        edge_color = "#7c4dff"
-    else:
-        edge_color = "#ff9800"
+    status_icon = status_cfg["icon"]
+    expander_label = f"**#{p['id']}** {p['title']}  ·  {ratio:.1f}× {status_icon}"
 
-    # Complexity color
-    if p["complexity"] >= 8:
-        cx_color = "#ff5252"
-    elif p["complexity"] >= 6:
-        cx_color = "#ff9800"
-    elif p["complexity"] >= 4:
-        cx_color = "#ffd740"
-    else:
-        cx_color = "#00e5a0"
-
-    cat_tag = '<span class="tag-radical">radical</span> ' if is_radical else ""
-    phase_tag = f'<span class="tag-phase">{p["phase"]}</span>'
-
-    with st.expander(f"**#{rank}** — {p['title']}  ·  ratio **{ratio:.1f}×**"):
+    with st.expander(expander_label):
         cols = st.columns([1, 1, 1, 3])
         with cols[0]:
             st.markdown(f'<div class="metric-label">Edge</div><div class="metric-value" style="color:{edge_color}">{p["edge"]}</div>', unsafe_allow_html=True)
@@ -511,20 +377,41 @@ for rank, p in enumerate(filtered, 1):
         with cols[2]:
             st.markdown(f'<div class="metric-label">Ratio</div><div class="metric-value" style="color:{ratio_color}">{ratio:.1f}×</div>', unsafe_allow_html=True)
         with cols[3]:
-            st.markdown(f'{cat_tag}{phase_tag}', unsafe_allow_html=True)
+            tags_html = ""
+            if is_radical:
+                tags_html += '<span class="tag tag-radical">radical</span>'
+            tags_html += f'<span class="tag-status" style="background:{status_cfg["color"]}22; color:{status_cfg["color"]}">{status_cfg["icon"]} {status_cfg["label"]}</span>'
+            st.markdown(tags_html, unsafe_allow_html=True)
+            st.markdown(f'<span class="tag-phase">{p.get("phase", "")}</span>', unsafe_allow_html=True)
             st.markdown(f'<div style="color:#8a8aa0; font-size:13px; margin-top:4px;">{p["description"]}</div>', unsafe_allow_html=True)
 
         st.markdown("---")
+
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown(f"**Tech Stack**")
-            st.caption(p["tech"])
+            st.markdown("**Tech Stack**")
+            st.caption(p.get("tech", ""))
         with c2:
-            st.markdown(f"**Expedition Features**")
-            st.caption(p["exp_features"])
+            st.markdown("**Expedition Features**")
+            st.caption(p.get("exp_features", ""))
+
+        deps = p.get("depends_on", [])
+        if deps:
+            deps_html = "<strong>Depends on:</strong> "
+            for dep_id in deps:
+                dep_title = title_by_id.get(dep_id, f"#{dep_id}")
+                deps_html += f'<span class="dep-tag">#{dep_id} {dep_title}</span>'
+            st.markdown(deps_html, unsafe_allow_html=True)
 
         if p.get("insight"):
             st.markdown(f'<div class="insight-box">💡 {p["insight"]}</div>', unsafe_allow_html=True)
+
+        if p.get("notes"):
+            st.markdown(f'<div class="notes-box">📝 {p["notes"]}</div>', unsafe_allow_html=True)
+
+        last_updated = p.get("last_updated", "")
+        if last_updated:
+            st.caption(f"Last updated: {last_updated}")
 
 
 # ─── Build sequence ───
@@ -533,15 +420,27 @@ st.markdown("### Recommended Build Sequence")
 st.markdown(
     """
     <div class="build-sequence">
-    <strong style="color:#00e5a0">Now →</strong> #1 Weather Model Scoring Engine (already built, test in Claude Code)<br>
+    <strong style="color:#00e5a0">Now →</strong> #1 Weather Model Scoring Engine (testing)<br>
     <strong style="color:#00bcd4">Next →</strong> #2 Live GRIB Nudging (highest edge, uses scoring output)<br>
     <strong style="color:#7c4dff">Then →</strong> #4 Polar Validation + #6 Historical Weather Analysis (off-season prep)<br>
     <strong style="color:#ffd740">Race week →</strong> #3 Ensemble Divergence + #9 Sensitivity Budget + #5 Sail Changes<br>
-    <strong style="color:#ff6b35">Long term →</strong> #11 Regime Classifier → #13 Probabilistic Routing → #15 Autonomous Co-Pilot (Pixel)
+    <strong style="color:#ff6b35">Long term →</strong> #11 Regime Classifier → #13 Probabilistic Routing → #15 Pixel
     </div>
     """,
     unsafe_allow_html=True,
 )
 
+# ─── Dependency map ───
 st.markdown("---")
-st.caption("BLUR Weather Intelligence · J/99 SWE-53435 · blur.se · Pixel v1.0")
+st.markdown("### Dependency Map")
+
+dep_projects = [p for p in PROJECTS if p.get("depends_on")]
+if dep_projects:
+    for p in dep_projects:
+        deps = p.get("depends_on", [])
+        dep_names = [f"#{d} {title_by_id.get(d, '?')}" for d in deps]
+        st.caption(f"#{p['id']} {p['title']} ← depends on {', '.join(dep_names)}")
+
+# ─── Footer ───
+st.markdown("---")
+st.caption("BLUR Weather Intelligence · Pixel v1.0 · J/99 SWE-53435 · [blur.se](https://www.blur.se) · Data: `projects.yaml`")
