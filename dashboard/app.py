@@ -411,7 +411,7 @@ fig.add_shape(
 )
 fig.add_annotation(
     x=2.75, y=9.8, text="sweet spot", showarrow=False,
-    font=dict(size=10, color="#00e5a040", family="DM Mono"),
+    font=dict(size=10, color="rgba(0,229,160,0.25)", family="DM Mono"),
 )
 
 # Ratio isolines
